@@ -736,16 +736,6 @@ __kernel void apply_rule_kernel(
     }
     
     // ========================================================================
-    // FOUR‑CHARACTER RULES (special cases like XNMI)
-    // ========================================================================
-    
-    else if (rule_len == 4) {
-        // XNMI – memory extract (placeholder, not implemented)
-        // Other 4‑char rules can be added here if needed
-        changed = 0;
-    }
-    
-    // ========================================================================
     // OUTPUT PROCESSING
     // ========================================================================
     
@@ -786,3 +776,4 @@ __kernel void apply_rule_chain_kernel(
     // ... (keep original implementation; memory operations not supported)
     // For brevity, omitted here – but can be adapted similarly.
 }
+
