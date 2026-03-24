@@ -7,16 +7,13 @@
 //   including simple rules, substitution, insertion, deletion, case toggling,
 //   leetspeak, memory operations, and logical conditionals.
 //
-//   The kernel is universal and can be used independently of any specific
-//   password cracking tool. It accepts words and rules as input, applies
-//   the transformations, and outputs the results.
-//
 //   Rules are categorized into groups as defined in Hashcat documentation:
-//   - Simple rules: l, u, c, C, t, r, k, :, d, f, pN, K, 'N, yN, YN, z, Z, q, E, eX, etc.
+//   - Simple rules: l, u, c, C, t, r, k, :, d, f, pN, K, 'N, yN, YN, z, Z, q, E, eX,
+//                   [, ], {, }
 //   - Position-based: Tn, Dn, Ln, Rn, inX, onX, 'n, xn m, etc.
 //   - Substitution: sXY, @X, pX, /X, !X
 //   - Case manipulation: TN, Tn m, LN, RN
-//   - String operations: ^X, $X, [N], ]N, {N, }N
+//   - String operations: ^X, $X
 //   - Memory operations: M, 4, 6, _ (partial - only placeholder)
 //   - Logical rules: ?nX, =nX, N, (N, )N, <N, >N, _N, !X, /X, (X, )X, %NX, Q (reject rules)
 //   - Special operations: q, z, Z, E, eX, 3nX, vnX, Kn m, *n m, yN, YN
@@ -41,7 +38,7 @@
 //   - Thread-safe for parallel execution
 //
 // AUTHOR: Generated from comprehensive Hashcat rules specification
-// VERSION: 2.0.0
+// VERSION: 2.0.2
 // ============================================================================
 
 #define MAX_WORD_LEN 256
@@ -301,6 +298,38 @@ __kernel void apply_rule_kernel(
                 }
                 changed = 1;
                 break;
+            case '[':   // Delete first character
+                out_len = (word_len > 0) ? word_len - 1 : 0;
+                for (int i = 1; i < word_len; i++) output[i-1] = word[i];
+                changed = (word_len > 0);
+                break;
+            case ']':   // Delete last character
+                out_len = (word_len > 0) ? word_len - 1 : 0;
+                for (int i = 0; i < out_len; i++) output[i] = word[i];
+                changed = (word_len > 0);
+                break;
+            case '{':   // Rotate left by one
+                out_len = word_len;
+                if (word_len > 1) {
+                    for (int i = 0; i < word_len - 1; i++) output[i] = word[i+1];
+                    output[word_len-1] = word[0];
+                    changed = 1;
+                } else {
+                    for (int i = 0; i < word_len; i++) output[i] = word[i];
+                    changed = 0;
+                }
+                break;
+            case '}':   // Rotate right by one
+                out_len = word_len;
+                if (word_len > 1) {
+                    output[0] = word[word_len-1];
+                    for (int i = 1; i < word_len; i++) output[i] = word[i-1];
+                    changed = 1;
+                } else {
+                    for (int i = 0; i < word_len; i++) output[i] = word[i];
+                    changed = 0;
+                }
+                break;
             case 'M':   // Memorize (placeholder – real memory needs state)
             case '4':   // Append memory (placeholder)
             case '6':   // Prepend memory (placeholder)
@@ -310,7 +339,6 @@ __kernel void apply_rule_kernel(
                 changed = 0;  // no output change
                 break;
             case 'Q':   // Reject if memory equals current (placeholder)
-                // not implemented in single‑rule kernel
                 changed = -1;
                 break;
             default:
@@ -411,38 +439,44 @@ __kernel void apply_rule_kernel(
                 }
                 break;
             case '!':   // Reject if word contains X
-                for (int i = 0; i < word_len; i++) {
-                    if (word[i] == arg) { changed = -1; break; }
-                }
-                if (changed != -1) {  // no reject, output original
-                    out_len = word_len;
-                    for (int i = 0; i < word_len; i++) output[i] = word[i];
-                    changed = 0;
+                {
+                    int reject = 0;
+                    for (int i = 0; i < word_len; i++) {
+                        if (word[i] == arg) { reject = 1; break; }
+                    }
+                    if (reject) changed = -1;
+                    else {
+                        out_len = word_len;
+                        for (int i = 0; i < word_len; i++) output[i] = word[i];
+                        changed = 0;
+                    }
                 }
                 break;
             case '/':   // Reject if word does NOT contain X
-                int found = 0;
-                for (int i = 0; i < word_len; i++) {
-                    if (word[i] == arg) { found = 1; break; }
-                }
-                if (!found) changed = -1;
-                else {
-                    out_len = word_len;
-                    for (int i = 0; i < word_len; i++) output[i] = word[i];
-                    changed = 0;
+                {
+                    int found = 0;
+                    for (int i = 0; i < word_len; i++) {
+                        if (word[i] == arg) { found = 1; break; }
+                    }
+                    if (!found) changed = -1;
+                    else {
+                        out_len = word_len;
+                        for (int i = 0; i < word_len; i++) output[i] = word[i];
+                        changed = 0;
+                    }
                 }
                 break;
             case 'p':   // Duplicate word N times (pN)
-                if (n <= 0) n = 1;
-                int total_len = word_len * n;
-                if (total_len <= MAX_OUTPUT_LEN) {
-                    out_len = total_len;
-                    for (int i = 0; i < n; i++) {
-                        for (int j = 0; j < word_len; j++) {
-                            output[i * word_len + j] = word[j];
-                        }
+                {
+                    int mult = n <= 0 ? 1 : n;
+                    int total_len = word_len * mult;
+                    if (total_len <= MAX_OUTPUT_LEN) {
+                        out_len = total_len;
+                        for (int i = 0; i < mult; i++)
+                            for (int j = 0; j < word_len; j++)
+                                output[i*word_len + j] = word[j];
+                        changed = 1;
                     }
-                    changed = 1;
                 }
                 break;
             case '(':   // Reject if first character != X
@@ -494,37 +528,48 @@ __kernel void apply_rule_kernel(
                 }
                 break;
             case '%':   // Reject if count of X < N
-                int cnt = count_char(word, word_len, arg);
-                if (cnt < n) changed = -1;
-                else {
-                    out_len = word_len;
-                    for (int i = 0; i < word_len; i++) output[i] = word[i];
-                    changed = 0;
+                {
+                    int cnt = count_char(word, word_len, arg);
+                    if (cnt < n) changed = -1;
+                    else {
+                        out_len = word_len;
+                        for (int i = 0; i < word_len; i++) output[i] = word[i];
+                        changed = 0;
+                    }
                 }
                 break;
             case 'y':   // Duplicate first N characters (yN)
-                if (n > word_len) n = word_len;
-                if (word_len + n <= MAX_OUTPUT_LEN) {
-                    out_len = word_len + n;
-                    for (int i = 0; i < word_len; i++) output[i] = word[i];
-                    for (int i = 0; i < n; i++) output[word_len + i] = word[i];
-                    changed = 1;
+                {
+                    int nn = n;
+                    if (nn > word_len) nn = word_len;
+                    if (word_len + nn <= MAX_OUTPUT_LEN) {
+                        out_len = word_len + nn;
+                        for (int i = 0; i < word_len; i++) output[i] = word[i];
+                        for (int i = 0; i < nn; i++) output[word_len + i] = word[i];
+                        changed = 1;
+                    }
                 }
                 break;
             case 'Y':   // Duplicate last N characters (YN)
-                if (n > word_len) n = word_len;
-                if (word_len + n <= MAX_OUTPUT_LEN) {
-                    out_len = word_len + n;
-                    for (int i = 0; i < word_len; i++) output[i] = word[i];
-                    for (int i = 0; i < n; i++) output[word_len + i] = word[word_len - n + i];
-                    changed = 1;
+                {
+                    int nn = n;
+                    if (nn > word_len) nn = word_len;
+                    if (word_len + nn <= MAX_OUTPUT_LEN) {
+                        out_len = word_len + nn;
+                        for (int i = 0; i < word_len; i++) output[i] = word[i];
+                        for (int i = 0; i < nn; i++) output[word_len + i] = word[word_len - nn + i];
+                        changed = 1;
+                    }
                 }
                 break;
             case '\'':  // Truncate at position N (keep chars 0..N-1)
-                if (n > word_len) n = word_len;
-                out_len = n;
-                for (int i = 0; i < n; i++) output[i] = word[i];
-                changed = (n != word_len);
+                {
+                    int nn = n;
+                    if (nn > word_len) nn = word_len;
+                    out_len = nn;
+                    for (int i = 0; i < nn; i++) output[i] = word[i];
+                    changed = (nn != word_len);
+                }
                 break;
             default:
                 changed = 0;
@@ -673,44 +718,6 @@ __kernel void apply_rule_kernel(
                 }
             }
         }
-        // Rotate left {N (single parameter, third char unused)
-        else if (cmd == '{') {
-            int n = parse_position(arg1);
-            if (n <= 0) n = 1;
-            out_len = word_len;
-            for (int i = 0; i < word_len; i++) {
-                int src = (i + n) % word_len;
-                output[i] = word[src];
-            }
-            changed = 1;
-        }
-        // Rotate right }N
-        else if (cmd == '}') {
-            int n = parse_position(arg1);
-            if (n <= 0) n = 1;
-            out_len = word_len;
-            for (int i = 0; i < word_len; i++) {
-                int src = (i - n + word_len) % word_len;
-                output[i] = word[src];
-            }
-            changed = 1;
-        }
-        // Delete first N characters [N
-        else if (cmd == '[') {
-            int n = parse_position(arg1);
-            if (n > word_len) n = word_len;
-            out_len = word_len - n;
-            for (int i = n; i < word_len; i++) output[i-n] = word[i];
-            changed = 1;
-        }
-        // Delete last N characters ]N
-        else if (cmd == ']') {
-            int n = parse_position(arg1);
-            if (n > word_len) n = word_len;
-            out_len = word_len - n;
-            for (int i = 0; i < out_len; i++) output[i] = word[i];
-            changed = 1;
-        }
         // Insert every N characters vNX
         else if (cmd == 'v') {
             int n = parse_position(arg1);
@@ -726,9 +733,6 @@ __kernel void apply_rule_kernel(
                 changed = 1;
             }
         }
-        // Duplicate first N characters (yN) – already handled in 2‑char, but could appear as 3‑char with third char unused
-        // Duplicate last N characters (YN) – same
-        // Truncate at N ('N) – same
         // Additional rules could be added here
         default:
             changed = 0;
@@ -774,6 +778,4 @@ __kernel void apply_rule_chain_kernel(
     const int max_output_len)
 {
     // ... (keep original implementation; memory operations not supported)
-    // For brevity, omitted here – but can be adapted similarly.
 }
-
