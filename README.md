@@ -295,3 +295,43 @@ for (int i = 0; i < num_words * num_rules; i++) {
 | Rule compatibility | Hashcat rule engine v6.x |
 | Encoding | Byte-level; UTF-8 safe for non-transforming rules |
 
+# OpenCL Kernel Compilation Tester
+
+A minimal Python script that compiles an OpenCL kernel file and reports success or build errors.
+
+## Requirements
+
+```
+pip install pyopencl
+```
+
+### An OpenCL-capable platform (GPU or CPU) must be available on the system.
+
+## Usage
+
+```bash
+# Default — looks for hashcat_rules_kernel.cl in the current directory
+python test_kernel_compile.py
+
+# Specify a kernel file
+python test_kernel_compile.py hashcat_rules_kernel.cl
+```
+
+## Output
+
+On success:
+```
+Kernel source loaded from 'hashcat_rules_kernel.cl' (12345 bytes).
+Using platform: NVIDIA CUDA
+Using device: NVIDIA GeForce RTX 3080
+Kernel compiled successfully!
+```
+
+On failure, the script prints the OpenCL build log and exits with code `1`.
+
+## Notes
+
+- Automatically selects the first available GPU, falling back to CPU if none is found.
+- Does not execute the kernel — compilation only.
+
+
