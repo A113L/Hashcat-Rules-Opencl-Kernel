@@ -86,10 +86,10 @@ The kernel is standalone, meaning it can be integrated into any GPU-based pipeli
 | `xNM` | Extract substring from `N` length `M` |
 | `ONM` | Delete `M` characters starting at `N` |
 | `*NM` | Swap characters at positions `N` and `M` |
-| `{N` | Rotate left |
-| `}N` | Rotate right |
-| `[N` | Remove first `N` characters |
-| `]N` | Remove last `N` characters |
+| `{` | Rotate left |
+| `}` | Rotate right |
+| `[` | Remove first characters |
+| `]` | Remove last characters |
 
 ---
 
