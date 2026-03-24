@@ -653,18 +653,6 @@ __kernel void apply_rule_kernel(
                 changed = 1;
             }
         }
-        // Toggle range Tnm (toggle positions N to M)
-        else if (cmd == 'T') {
-            int n = parse_position(arg1);
-            int m = parse_position(arg2);
-            if (n > m) { int t = n; n = m; m = t; }
-            out_len = word_len;
-            for (int i = 0; i < word_len; i++) output[i] = word[i];
-            for (int i = n; i <= m && i < word_len; i++) {
-                output[i] = toggle_case(word[i]);
-            }
-            changed = 1;
-        }
         // Reject ?NX (if char at N != X)
         else if (cmd == '?') {
             int n = parse_position(arg1);
