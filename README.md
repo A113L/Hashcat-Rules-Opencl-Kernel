@@ -321,7 +321,7 @@ python test_kernel_compile.py hashcat_rules_kernel.cl
 
 On success:
 ```
-Kernel source loaded from 'hashcat_rules_kernel.cl' (12345 bytes).
+Kernel source loaded from 'hashcat_rules_kernel.cl' (29145 bytes).
 Using platform: NVIDIA CUDA
 Using device: NVIDIA GeForce RTX 3080
 Kernel compiled successfully!
