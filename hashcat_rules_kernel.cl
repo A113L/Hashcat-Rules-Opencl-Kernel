@@ -4,6 +4,12 @@
 // 
 // DESCRIPTION:
 //   This kernel implements ALL Hashcat rule transformations (16,000+ rules)
+//   including simple rules, substitution, insertion, deletion, case toggling,// ============================================================================
+// hashcat_rules_kernel.cl - Complete Hashcat Rules Implementation for OpenCL
+// ============================================================================
+// 
+// DESCRIPTION:
+//   This kernel implements ALL Hashcat rule transformations (16,000+ rules)
 //   including simple rules, substitution, insertion, deletion, case toggling,
 //   leetspeak, memory operations, and logical conditionals.
 //
@@ -38,7 +44,7 @@
 //   - Thread-safe for parallel execution
 //
 // AUTHOR: Generated from comprehensive Hashcat rules specification
-// VERSION: 2.0.2
+// VERSION: 2.0.3
 // ============================================================================
 
 #define MAX_WORD_LEN 256
@@ -721,10 +727,10 @@ __kernel void apply_rule_kernel(
                 changed = 1;
             }
         }
-        // Additional rules could be added here
-        default:
+        // No matching rule
+        else {
             changed = 0;
-            break;
+        }
     }
     
     // ========================================================================
