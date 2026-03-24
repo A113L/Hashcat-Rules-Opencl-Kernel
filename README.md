@@ -33,7 +33,7 @@ This kernel processes word/rule pairs in parallel across GPU threads. Each threa
 words[] × rules[]  →  [kernel]  →  results[] + hits[]
 ```
 
-Rules are encoded as short null-terminated strings (up to 16 bytes). The kernel dispatches on `rule_len` (1, 2, or 3 characters) and branches on the leading command byte.
+Rules are encoded as short null-terminated strings (up to 255 bytes). The kernel dispatches on `rule_len` (1, 2, or 3 characters) and branches on the leading command byte.
 
 ---
 
