@@ -127,7 +127,6 @@ The kernel is standalone, meaning it can be integrated into any GPU-based pipeli
 
 | Rule | Description |
 |------|------------|
-| `Tnm` | Toggle case in range `n` to `m` |
 | `=NX` | Reject if char at `N` == `X` |
 | `eX` | Title case using separator `X` |
 | `3NX` | Toggle after Nth occurrence of separator |
