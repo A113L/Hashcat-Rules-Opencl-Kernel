@@ -41,6 +41,10 @@ The kernel is standalone, meaning it can be integrated into any GPU-based pipeli
 | `Z` | Duplicate last character |
 | `q` | Duplicate every character |
 | `E` | Title case |
+| `[` | Delete first character |
+| `]` | Delete last character |
+| `{` | Rotate left by one |
+| `}` | Rotate right by one |
 
 ---
 
@@ -86,10 +90,11 @@ The kernel is standalone, meaning it can be integrated into any GPU-based pipeli
 | `xNM` | Extract substring from `N` length `M` |
 | `ONM` | Delete `M` characters starting at `N` |
 | `*NM` | Swap characters at positions `N` and `M` |
-| `{` | Rotate left |
-| `}` | Rotate right |
-| `[` | Remove first characters |
-| `]` | Remove last characters |
+| `{N` | Rotate left by `N` |
+| `}N` | Rotate right by `N` |
+| `[N` | Remove first `N` characters |
+| `]N` | Remove last `N` characters |
+| `'N` | Truncate at position `N` |
 
 ---
 
@@ -116,7 +121,9 @@ The kernel is standalone, meaning it can be integrated into any GPU-based pipeli
 | `>N` | Reject if length < `N` |
 | `_N` | Reject if length != `N` |
 | `=NX` | Reject if char at `N` != `X` |
+| `?NX` | Reject if char at `N` != `X` (alternate form) |
 | `%NX` | Reject if count of `X` < `N` |
+| `Q` | Reject based on memory (placeholder) |
 
 ---
 
@@ -125,11 +132,9 @@ The kernel is standalone, meaning it can be integrated into any GPU-based pipeli
 | Rule | Description |
 |------|------------|
 | `Tnm` | Toggle case in range `n` to `m` |
-| `?NX` | Reject if char at `N` != `X` |
 | `=NX` | Reject if char at `N` == `X` |
 | `eX` | Title case using separator `X` |
 | `3NX` | Toggle after Nth occurrence of separator |
-| `'N` | Truncate at position `N` |
 
 ---
 
@@ -141,7 +146,6 @@ The kernel is standalone, meaning it can be integrated into any GPU-based pipeli
 | `4` | Append memory (not implemented) |
 | `6` | Prepend memory (not implemented) |
 | `_` | No-op (memory placeholder) |
-| `Q` | Reject if memory equals current (not implemented) |
 
 ---
 
